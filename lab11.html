@@ -2,13 +2,13 @@
 <HEAD>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>
-		Рубежный контроль
+		Лабораторная работа №11
 	</title>
 <STYLE>
 	body {
 		margin: 0;
 	}
-	#RK {
+	#lab11 {
 		border-width: 3px;
 		border-color: #000000;
 		border-style: solid; 
@@ -20,7 +20,7 @@
 </HEAD>
 <BODY>
 	<div class= "canvas">
-		<canvas id='RK' height='500' width='1000' style='border-width: 3px' />
+		<canvas id='lab11' height='500' width='1000' style='border-width: 3px' />
 	</div>
 	<div class = "buttons"> 
 		<button type="button" id="secondButton" onclick="lineFunction()">Line</button> 
@@ -35,7 +35,7 @@
 		<h1>Draw Rectangle и нажатие на экран- завершение рисование треугольника и обрезание кривой Безье</h1>	
 	</div>
 <script>
-	var canvas = document.getElementById('RK');
+	var canvas = document.getElementById('lab11');
 	var ctx = canvas.getContext('2d');
 	var buffer=[];
 	var bufferRect=[];
