@@ -1,0 +1,203 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>
+			Лабораторная работа №6
+		</title>
+	</head>
+	<body>
+		<canvas id="canvas" width="800" height="800" style='border:1px solid'></canvas>
+		<script>
+			var canvas = document.getElementById("canvas");
+			var context = canvas.getContext("2d");
+	
+			var drawDot = function (dot) {
+				context.fillRect(dot.x, dot.y, 1, 1);
+			};
+			
+			var drawLine = function (start, end) {
+				var accumulated_error = 0;
+				
+				if (Math.abs(end.y - start.y) > Math.abs(end.x - start.x)) {
+					var topDot = (start.y < end.y ? start : end);
+					var bottomDot = (start.y < end.y ? end : start);
+
+					var x = topDot.x;
+					for (var y = topDot.y; y < bottomDot.y; y++) {
+						drawDot({
+							x: x,
+							y: y
+						});
+						accumulated_error += (end.x - start.x) / (end.y - start.y);
+						
+						if (accumulated_error >= 0.5) {
+							x++;
+							accumulated_error -= 1;
+						} else if (accumulated_error <= -0.5) {
+							x--;
+							accumulated_error += 1;
+						}
+					}
+				} else {
+					var leftDot = (start.x < end.x ? start : end);
+					var rightDot = (start.x < end.x ? end : start);
+	
+					var y = leftDot.y;
+					for (var x = leftDot.x; x < rightDot.x; x++) {
+						drawDot({
+							x: x,
+							y: y
+						});
+						accumulated_error += (end.y - start.y) / (end.x - start.x);
+						
+						if (accumulated_error >= 0.5) {
+							y++;
+							accumulated_error -= 1;
+						} else if (accumulated_error <= -0.5) {
+							y--;
+							accumulated_error += 1;
+						}
+					}
+				}
+			};
+			
+			var drawPolygon = function (dots) {
+				drawDot(dots[0]);
+				for (var i = 0; i < dots.length; i++) {
+					drawLine(dots[i], dots[(i + 1) % dots.length]);
+				}
+			};
+			
+			var drawRectangle = function (rectangle) {
+				var A = rectangle.topLeft;
+				var B = { x: rectangle.bottomRight.x, y: rectangle.topLeft.y };
+				var C = rectangle.bottomRight;
+				var D = { x: rectangle.topLeft.x, y: rectangle.bottomRight.y };
+				drawPolygon([A, B, C, D]);
+			};
+			
+			var drawCircle = function (circleCenter, pointOnCircle) {
+				var radius = Math.sqrt(
+					Math.pow(circleCenter.x - pointOnCircle.x, 2)
+					+ Math.pow(circleCenter.y - pointOnCircle.y, 2));
+				console.log(radius);
+				var x = 0;
+				var y = radius;
+				var delta = 1 - 2 * radius;
+				var accumulatdError = 0;
+				
+				while (y >= 0) {
+					drawDot({ x: circleCenter.x + x, y: circleCenter.y + y });
+					drawDot({ x: circleCenter.x + x, y: circleCenter.y - y });
+					drawDot({ x: circleCenter.x - x, y: circleCenter.y + y });
+					drawDot({ x: circleCenter.x - x, y: circleCenter.y - y });
+					accumulatdError = 2 * (delta + y) - 1;
+				
+					if (delta < 0 && accumulatdError <= 0) {
+						x++;
+						delta += 2 * x + 1;
+						continue;
+					}
+					accumulatdError = 2 * (delta - x) - 1;
+					
+					if (delta > 0 && accumulatdError > 0) {
+						y--;
+						delta += 1 - 2 * y;
+						continue;
+					}
+					x++;
+					delta += 2 * (x - y);
+					y--;
+				}
+			};
+
+			var drawCutoffLine = function (lineStart, lineEnd, polygonDots) {
+				var lineStartParameter = 0;
+				var lineEndParameter = 1;
+				
+				for (var i = 0; i < polygonDots.length; i++) {
+					var x0 = lineStart.x;
+					var y0 = lineStart.y;
+					var x1 = lineEnd.x;
+					var y1 = lineEnd.y;
+					var x3 = polygonDots[i].x;
+					var y3 = polygonDots[i].y;
+					var x4 = polygonDots[(i + 1) % polygonDots.length].x;
+					var y4 = polygonDots[(i + 1) % polygonDots.length].y;
+					var directionNumber = (y4 - y3) * (x1 - x0) - (x4 - x3) * (y1 - y0);
+					var intersectionParameter = (  (y3 - y0) * (x4 - x3) - (x3 - x0) * (y4 - y3)  )
+                    / (  (y1 - y0) * (x4 - x3) - (x1 - x0) * (y4 - y3)  );
+					console.log("direction: " + directionNumber);
+					console.log("intersectionP: " + intersectionParameter);
+					
+					if (directionNumber < 0) {
+						if (intersectionParameter < lineEndParameter) {
+							lineEndParameter = intersectionParameter;
+						}
+					} else if (directionNumber > 0) {
+						if (intersectionParameter > lineStartParameter) {
+							lineStartParameter = intersectionParameter;
+						}
+					}
+				}
+				
+				if (lineStartParameter <= lineEndParameter) {
+					drawLine(
+						{
+							x: lineStart.x + lineStartParameter * (lineEnd.x - lineStart.x),
+							y: lineStart.y + lineStartParameter * (lineEnd.y - lineStart.y)
+						},
+						{
+							x: lineStart.x + lineEndParameter * (lineEnd.x - lineStart.x),
+							y: lineStart.y + lineEndParameter * (lineEnd.y - lineStart.y)
+						}
+					);
+				}
+			};
+
+			var polygonDots = [
+				{
+					x: 240,
+					y: 650
+				},
+				{
+					x: 400,
+					y: 500
+				},
+				{
+					x: 450,
+					y: 320
+				},
+				{
+					x: 320,
+					y: 240
+				},
+				{
+					x: 250,
+					y: 350
+				}
+			];
+			
+			drawPolygon(polygonDots);
+			var lineStart = null;
+			(function setMouseListeners() {
+				canvas.addEventListener("mousedown", function (event) {
+					lineStart = {
+						x: event.pageX - canvas.offsetLeft,
+						y: event.pageY - canvas.offsetTop
+					};
+				});
+				canvas.addEventListener("mouseup", function (event) {
+					if (lineStart !== null) {
+						var lineEnd = {
+							x: event.pageX - canvas.offsetLeft,
+							y: event.pageY - canvas.offsetTop
+						};
+						drawCutoffLine(lineStart, lineEnd, polygonDots);
+						lineStart = null;
+					}
+				});
+			})();
+		</script>
+	</body>
+</html>
